@@ -1,0 +1,14 @@
+create table H_USER--住房用户
+(
+  ID        NUMBER not null,
+  userName  VARCHAR2(50),   --用户名
+  cardNum                   --身份证号
+  sex                       --性别
+  telephone VARCHAR2(15),   --电话号码
+  RID                       --房屋编号
+  createOn                  --起租日期
+  price                     --押金
+  doorCard                  --是否有门卡
+  status                    --状态   正在住房  退房走人
+  comment NVARCHAR2(2000),  --描述
+);

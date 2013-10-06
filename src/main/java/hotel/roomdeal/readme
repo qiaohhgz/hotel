@@ -1,0 +1,10 @@
+create table H_RoomDeal(--房间收款记录
+ID          NUMBER,
+OID                      --合同编号
+                         --房费
+                              --电费
+createOn                 --收款时间 6.22    7.22
+endDate                  --到租时间     7.22    8.22
+endDate                  --缴费时间
+comment NVARCHAR2(2000),--描述
+)

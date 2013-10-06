@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.0.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-3.0.xsd  
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd 
+	">
+    <context:annotation-config/>
+    <context:component-scan base-package="hotel"/>
+
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:hotel.properties</value>
+                <value>classpath:hibernate.properties</value>
+                <value>classpath:sqlserver.properties</value>
+                <value>classpath:mysql.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- data source -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+          destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="maxActive">
+            <value>${dataSource.maxActive}</value>
+        </property>
+        <property name="maxIdle">
+            <value>${dataSource.maxIdle}</value>
+        </property>
+        <property name="maxWait">
+            <value>${dataSource.maxWait}</value>
+        </property>
+        <property name="removeAbandoned">
+            <value>${dataSource.removeAbandoned}</value>
+        </property>
+        <property name="removeAbandonedTimeout">
+            <value>${dataSource.removeAbandonedTimeout}</value>
+        </property>
+        <property name="testOnBorrow" value="true"/>
+        <property name="validationQuery" value="select 1"/>
+    </bean>
+
+    <!-- 加载Hibernate配置 -->
+    <bean id="sessionFactory"
+          class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+
+        <property name="hibernateProperties">
+            <value>
+                hibernate.dialect=${hibernate.dialect}
+                hibernate.hbm2ddl.auto=${hibernate.hbm2ddl.auto}
+                hibernate.show_sql=${hibernate.show_sql}
+                hibernate.format_sql=${hibernate.format_sql}
+            </value>
+        </property>
+
+        <property name="packagesToScan">
+            <list>
+                <value>hotel</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 配置事务  -->
+    <!-- 配置Hibernate的事务管理器 -->
+    <bean id="txManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <!-- 定义事务通知，需要指定一个事务管理器  -->
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <!--
+               对get、find、search、query开头的方法要求只读事务
+               设置为只读属性是为了提高效率，详细请查API
+               -->
+        <tx:attributes>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="search*" read-only="true"/>
+            <tx:method name="query*" read-only="true"/>
+            <tx:method name="add*" propagation="REQUIRED"/>
+            <tx:method name="save*" propagation="REQUIRED"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+            <tx:method name="del*" propagation="REQUIRED"/>
+            <tx:method name="do*" propagation="REQUIRED"/>
+            <tx:method name="*" propagation="REQUIRED" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config>
+        <!--
+           定义这些方法应用这些规则
+           -->
+        <aop:pointcut id="serviceMethodPointcut" expression="execution(public * hotel.*.*(..))"/>
+        <!--
+           将事务通知与应用规则的方法组合（织入）
+           -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethodPointcut"/>
+    </aop:config>
+
+
+    <bean id="constantHelper" class="hotel.common.constant.ConstantHelper">
+        <constructor-arg index="0" value="${hotel.useProxy}"/>
+        <constructor-arg index="1" value="${hotel.proxyHost}"/>
+        <constructor-arg index="2" value="${hotel.proxyPort}"/>
+    </bean>
+    
+    <!-- taskExecutor  线程池执行异步操作 -->
+    <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+      <property name="corePoolSize" value="5" />
+      <property name="maxPoolSize" value="10" />
+      <property name="queueCapacity" value="25" />
+    </bean>
+
+    <bean id="taskExecutorExample" class="hotel.common.executor.TaskExecutorExample">
+      <constructor-arg ref="taskExecutor" />
+    </bean>
+</beans>

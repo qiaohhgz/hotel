@@ -1,0 +1,11 @@
+create table H_Room--房间
+(
+  ID          NUMBER,
+  RoomID      varchar,        --编号  例如301
+  TYPE_ID     NUMBER,         --类型  单人间, 四人间，六人间，多人间 
+  PRICE       NUMBER,         --每人每月租金
+                              --是否收电费
+                              --电费起始度数
+                              --有无窗户
+  comment NVARCHAR2(2000),    --描述
+);

@@ -1,0 +1,8 @@
+create table H_WireDeal(--电费记录
+ID          NUMBER,
+OID                      --合同编号
+                         --电费起数  
+                         --电费止数  
+endDate                 --创建时间
+comment NVARCHAR2(2000),--描述
+)
